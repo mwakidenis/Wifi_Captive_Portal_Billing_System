@@ -265,7 +265,11 @@ wifi_billing/
 
 ## License
 
+<<<<<<< HEAD
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+=======
+This project is licensed under the GNU License - see the [LICENSE](LICENSE) file for details.
+>>>>>>> f6c8c035e5e1bd5e8c040c3469e52a4ef2b08bdf
 
 ## Support
 
