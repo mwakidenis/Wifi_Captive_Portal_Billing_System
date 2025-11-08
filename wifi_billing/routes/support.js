@@ -122,8 +122,16 @@ router.put("/requests/:id/status", async (req, res) => {
 
     const updatedRequest = await prisma.supportRequest.update({
       where: { id: parseInt(id) },
-      data: { status }
+      data: { status, updatedAt: new Date() }
     });
+
+    // Broadcast real-time update to the user
+    if (global.broadcastSupportUpdate && updatedRequest.phone) {
+      global.broadcastSupportUpdate(updatedRequest.phone, {
+        type: "status_update",
+        request: updatedRequest
+      });
+    }
 
     res.json({
       success: true,
@@ -135,6 +143,36 @@ router.put("/requests/:id/status", async (req, res) => {
     res.status(500).json({
       success: false,
       error: "Failed to update support request"
+    });
+  }
+});
+
+// Get user's own support requests (User endpoint)
+router.get("/user/requests", async (req, res) => {
+  try {
+    const { phone } = req.query;
+
+    if (!phone) {
+      return res.status(400).json({
+        success: false,
+        error: "Phone number is required"
+      });
+    }
+
+    const requests = await prisma.supportRequest.findMany({
+      where: { phone: phone },
+      orderBy: { createdAt: "desc" }
+    });
+
+    res.json({
+      success: true,
+      data: requests
+    });
+  } catch (error) {
+    console.error("Error fetching user support requests:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch support requests"
     });
   }
 });
