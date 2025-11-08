@@ -26,6 +26,7 @@ import { Footer } from "@/components/footer"
 import { ToastProvider } from "@/components/toast-provider"
 import { toast } from "sonner"
 import { apiClient } from "@/lib/api"
+import { useDynamicTitle } from "@/hooks/use-dynamic-title"
 
 const contactMethods = [
   {

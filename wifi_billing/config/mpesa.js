@@ -5,19 +5,23 @@ const moment = require("moment");
 const MPESA_ENV = process.env.MPESA_ENV || "sandbox"; // "sandbox" or "production"
 const MPESA_BASE_URL = MPESA_ENV === "sandbox" ? "https://sandbox.safaricom.co.ke" : "https://api.safaricom.co.ke";
 
-// ✅ Ensure required env variables are set
-const REQUIRED_ENV_VARS = [
-    "MPESA_CONSUMER_KEY",
-    "MPESA_CONSUMER_SECRET",
-    "MPESA_SHORTCODE",
-    "MPESA_PASSKEY",
-    "MPESA_CALLBACK_URL"
-];
+// ✅ Check if M-Pesa is enabled (for development, can be disabled)
+const MPESA_ENABLED = process.env.MPESA_ENABLED !== "false";
 
-for (const varName of REQUIRED_ENV_VARS) {
-    if (!process.env[varName]) {
-        console.error(`❌ Missing environment variable: ${varName}`);
-        process.exit(1); // Stop the server if important variables are missing
+if (MPESA_ENABLED) {
+    const REQUIRED_ENV_VARS = [
+        "MPESA_CONSUMER_KEY",
+        "MPESA_CONSUMER_SECRET",
+        "MPESA_SHORTCODE",
+        "MPESA_PASSKEY",
+        "MPESA_CALLBACK_URL"
+    ];
+
+    for (const varName of REQUIRED_ENV_VARS) {
+        if (!process.env[varName] || process.env[varName] === "your_consumer_key_here" || process.env[varName] === "your_consumer_secret_here" || process.env[varName] === "your_passkey_here") {
+            console.warn(`⚠️  Missing or placeholder value for: ${varName}`);
+            console.warn(`⚠️  M-Pesa will run in MOCK mode. Set MPESA_ENABLED=false to disable this warning.`);
+        }
     }
 }
 

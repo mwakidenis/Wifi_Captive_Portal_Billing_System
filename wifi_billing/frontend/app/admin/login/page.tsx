@@ -27,13 +27,13 @@ export default function AdminLogin() {
     setError(null)
 
     try {
-      const result = await login(email, password)
-      if (result.success) {
+      const success = await login(email, password)
+      if (success) {
         toast.success("Login successful!")
         router.push("/admin")
       } else {
-        setError(result.error || "Login failed")
-        toast.error(result.error || "Login failed")
+        setError("Invalid credentials")
+        toast.error("Invalid credentials")
       }
     } catch (error) {
       setError("An unexpected error occurred")
@@ -107,7 +107,7 @@ export default function AdminLogin() {
           
           <div className="mt-6 text-center">
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Default credentials: admin / admin123
+              Default credentials: Mathew / Mathew12345
             </p>
           </div>
         </CardContent>

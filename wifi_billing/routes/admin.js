@@ -13,20 +13,20 @@ const {
 // 🔐 ========================
 // ADMIN LOGIN (via .env)
 // ==========================
-router.post("/auth/login", async (req, res) => {
+router.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
     if (
-      email === process.env.ADMIN_EMAIL &&
+      username === process.env.ADMIN_USERNAME &&
       password === process.env.ADMIN_PASSWORD
     ) {
       const token = jwt.sign(
-        { role: "admin", email },
+        { role: "admin", username, email: process.env.ADMIN_EMAIL },
         process.env.JWT_SECRET,
         { expiresIn: "1d" }
       );
-      return res.json({ success: true, token });
+      return res.json({ success: true, token, admin: { username, email: process.env.ADMIN_EMAIL } });
     }
 
     return res.status(401).json({ success: false, message: "Invalid credentials" });
@@ -59,33 +59,56 @@ function authMiddleware(req, res, next) {
 // ============================
 
 // ✅ Get All Payments
-router.get("/admin/payments", authMiddleware, async (req, res) => {
-  db.query(
-    "SELECT phone, amount, time_purchased, status FROM payments ORDER BY time_purchased DESC",
-    (err, results) => {
-      if (err) return res.status(500).json({ success: false, error: "Database error" });
-      res.json({ success: true, data: results });
-    }
-  );
+router.get("/payments", authMiddleware, async (req, res) => {
+  try {
+    const payments = await prisma.payment.findMany({
+      orderBy: { timePurchased: "desc" },
+      select: {
+        phone: true,
+        amount: true,
+        timePurchased: true,
+        status: true
+      }
+    });
+    res.json({ success: true, data: payments });
+  } catch (error) {
+    console.error("Payments error:", error);
+    res.status(500).json({ success: false, error: "Database error" });
+  }
 });
 
 // ✅ Get Summary
-router.get("/admin/summary", authMiddleware, async (req, res) => {
-  const summaryQuery = `
-        SELECT 
-            (SELECT COUNT(DISTINCT phone) FROM payments WHERE status = 'completed') AS totalUsers,
-            (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status = 'completed') AS totalRevenue,
-            0 AS activeSessions,
-            (SELECT COUNT(*) FROM payments WHERE status = 'pending') AS pendingPayments
-    `;
+router.get("/summary", authMiddleware, async (req, res) => {
+  try {
+    const totalUsers = await prisma.payment.count({
+      where: { status: "completed" },
+      distinct: ["phone"]
+    });
 
-  db.query(summaryQuery, (err, results) => {
-    if (err) {
-      console.error("Database error:", err);
-      return res.status(500).json({ success: false, error: "Internal Server Error" });
-    }
-    res.json({ success: true, data: results[0] });
-  });
+    const totalRevenue = await prisma.payment.aggregate({
+      where: { status: "completed" },
+      _sum: { amount: true }
+    });
+
+    const pendingPayments = await prisma.payment.count({
+      where: { status: "pending" }
+    });
+
+    const activeSessions = 0; // Placeholder for now
+
+    res.json({
+      success: true,
+      data: {
+        totalUsers,
+        totalRevenue: totalRevenue._sum.amount || 0,
+        activeSessions,
+        pendingPayments
+      }
+    });
+  } catch (error) {
+    console.error("Summary error:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
 });
 
 // ============================

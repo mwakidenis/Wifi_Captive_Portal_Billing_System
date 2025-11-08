@@ -19,6 +19,7 @@
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
     "express-rate-limit": "^7.1.5",
+    "express-validator": "^7.0.1",
     "helmet": "^7.2.0",
     "jsonwebtoken": "^9.0.2",
     "moment": "^2.30.1",

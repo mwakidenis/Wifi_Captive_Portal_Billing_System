@@ -16,12 +16,13 @@ router.post("/mpesa/callback", async (req, res) => {
   }
 
   if (resultCode !== 0) {
-    // Mark failed using parameterized query
+    // Mark failed using parameterized query - payment was not completed
     try {
       await prisma.payment.updateMany({
         where: { mpesaRef: checkoutId },
         data: { status: "failed" }
       });
+      console.log(`❌ Payment failed for checkout ID: ${checkoutId} - Result Code: ${resultCode}`);
       return res.json({ success: false, message: "Payment failed or canceled" });
     } catch (error) {
       console.error("❌ Failed to update payment status:", error);
@@ -31,6 +32,20 @@ router.post("/mpesa/callback", async (req, res) => {
 
   const amount = callbackData?.CallbackMetadata?.Item?.find((item) => item.Name === "Amount")?.Value;
   const mpesaRef = callbackData?.CallbackMetadata?.Item?.find((item) => item.Name === "MpesaReceiptNumber")?.Value;
+
+  // Validate that we have the required M-Pesa transaction details
+  if (!amount || !mpesaRef) {
+    console.error("❌ Invalid callback data - missing amount or M-Pesa receipt number");
+    try {
+      await prisma.payment.updateMany({
+        where: { mpesaRef: checkoutId },
+        data: { status: "failed" }
+      });
+    } catch (error) {
+      console.error("❌ Failed to update payment status:", error);
+    }
+    return res.status(400).json({ success: false, error: "Invalid callback data - missing transaction details" });
+  }
 
   try {
     // Fetch MAC address using parameterized query
@@ -53,15 +68,25 @@ router.post("/mpesa/callback", async (req, res) => {
     const mikrotikResponse = await whitelistMAC(mac, time);
 
     if (mikrotikResponse.success) {
-      // Update payment status using parameterized query
+      // Calculate expiry time based on amount
+      let expiryHours = 1; // Default 1 hour
+      if (Number(amount) === 30) expiryHours = 24;
+      else if (Number(amount) === 20) expiryHours = 12;
+      else if (Number(amount) === 15) expiryHours = 4;
+
+      const expiresAt = new Date(Date.now() + expiryHours * 60 * 60 * 1000);
+
+      // Update payment status using parameterized query - ONLY when M-Pesa PIN is entered and payment succeeds
       await prisma.payment.updateMany({
         where: { mpesaRef: checkoutId },
         data: {
           status: "completed",
           mpesaRef: mpesaRef || checkoutId || null,
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+          expiresAt: expiresAt
         }
       });
+
+      console.log(`✅ Payment completed for checkout ID: ${checkoutId} - Amount: ${amount}, Expires: ${expiresAt}`);
       return res.json({ success: true, message: mikrotikResponse.message });
     } else {
       console.error("❌ MikroTik Error:", mikrotikResponse.message);

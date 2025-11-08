@@ -14,6 +14,9 @@ const {
 const mpesaRoutes = require("./routes/mpesaRoutes");
 const mpesaCallback = require("./routes/mpesaCallback");
 
+// Auth routes
+const authRoutes = require("./routes/auth");
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -206,10 +209,30 @@ app.get("/network/status", authMiddleware, async (req, res) => {
   if (!resp.success) return res.status(500).json({ success: false, error: resp.error });
   res.json({ success: true, data: resp.data });
 });
+// -------------------- AUTH ROUTES --------------------
+app.use("/api/auth", authRoutes);
+
+// -------------------- ADMIN ROUTES --------------------
+const adminRoutes = require("./routes/admin");
+app.use("/api/admin", adminRoutes);
+
 // -------------------- M-PESA ROUTES --------------------
 app.use("/api", mpesaRoutes);
 app.use("/api", mpesaCallback);
 
+
+// -------------------- DEVICE INFO ROUTE --------------------
+app.get("/api/device/info", (req, res) => {
+  // Mock device info for development
+  res.json({
+    success: true,
+    data: {
+      macAddress: "00:11:22:33:44:55",
+      ipAddress: "192.168.1.100",
+      deviceId: "DEV001"
+    }
+  });
+});
 
 // -------------------- ROOT ROUTE --------------------
 app.get("/", (req, res) => {

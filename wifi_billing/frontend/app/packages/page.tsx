@@ -1,12 +1,17 @@
 "use client"
-import { CheckCircle, Wifi, Zap, Clock, Star, ArrowRight } from "lucide-react"
+import { useState, useEffect } from "react"
+import { CheckCircle, Wifi, Zap, Clock, Star, ArrowRight, Phone, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { ToastProvider } from "@/components/toast-provider"
+import { PaymentSuccessModal } from "@/components/payment-success-modal"
 import { toast } from "sonner"
+import { apiClient, type PaymentRequest } from "@/lib/api"
 import Link from "next/link"
 
 const packages = [
@@ -56,7 +61,7 @@ const packages = [
   },
 ]
 
-const PackageCard = ({ pkg }) => {
+const PackageCard = ({ pkg, onPackageSelect }) => {
   const colorClasses = {
     yellow: "border-yellow-500 bg-yellow-500/5",
     green: "border-green-500 bg-green-500/5",
@@ -65,14 +70,7 @@ const PackageCard = ({ pkg }) => {
   }
 
   const handleSelectPackage = () => {
-    toast.success(`${pkg.name} package selected!`, {
-      description: `Redirecting to payment for Ksh ${pkg.price}`,
-      duration: 3000,
-    })
-    // Redirect to home page with selected package
-    setTimeout(() => {
-      window.location.href = `/?package=${pkg.id}`
-    }, 1500)
+    onPackageSelect(pkg)
   }
 
   return (
@@ -152,8 +150,213 @@ const PackageCard = ({ pkg }) => {
 }
 
 export default function PackagesPage() {
-  useDynamicTitle("WiFi Packages")
-  
+  const [phone, setPhone] = useState("")
+  const [selectedPackage, setSelectedPackage] = useState(null)
+  const [transactionId, setTransactionId] = useState<string | null>(null)
+  const [status, setStatus] = useState<"pending" | "completed" | "failed" | "">("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [macAddress, setMacAddress] = useState("Loading...")
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [paymentData, setPaymentData] = useState<any>(null)
+
+  useEffect(() => {
+    fetchDeviceInfo()
+  }, [])
+
+  const fetchDeviceInfo = async () => {
+    try {
+      toast.info("Fetching device information...", { duration: 2000 })
+
+      const response = await apiClient.getDeviceInfo()
+
+      if (response.success && response.data) {
+        setMacAddress(response.data.macAddress)
+        toast.success("Device information loaded", { duration: 2000 })
+      } else {
+        throw new Error(response.error || "Failed to fetch device info")
+      }
+    } catch (error) {
+      console.error("Error fetching device info:", error)
+      setMacAddress("UNAVAILABLE")
+      toast.error("Could not retrieve device information", {
+        description: "Please refresh the page and try again",
+      })
+    }
+  }
+
+  const handlePackageSelect = (pkg) => {
+    setSelectedPackage(pkg)
+    setShowPaymentModal(true)
+  }
+
+  const handlePayment = async () => {
+    // Validation
+    if (!/^(07|01)\d{8}$/.test(phone)) {
+      toast.error("Invalid phone number", {
+        description: "Please enter a valid 10-digit phone number starting with 07 or 01",
+      })
+      return
+    }
+
+    if (!selectedPackage) {
+      toast.error("No package selected", {
+        description: "Please select a package before proceeding",
+      })
+      return
+    }
+
+    setIsLoading(true)
+    setStatus("pending")
+
+    toast.loading("Initiating M-Pesa payment...", {
+      description: `Ksh ${selectedPackage.price} for ${selectedPackage.name}`,
+      id: "payment-loading",
+    })
+
+    try {
+      const paymentPayload: PaymentRequest = {
+        phone: `+254${phone.substring(1)}`,
+        amount: selectedPackage.price,
+        package: selectedPackage.name,
+        macAddress,
+        speed: selectedPackage.speed,
+      }
+
+      console.log("Payment payload:", paymentPayload)
+
+      const response = await apiClient.initiatePayment(paymentPayload)
+
+      if (response.success && response.data) {
+        const { transactionId: txnId, mpesaRef, status: paymentStatus, expiresAt } = response.data
+
+        setTransactionId(txnId)
+        setStatus(paymentStatus)
+
+        if (paymentStatus === "completed") {
+          const successPaymentData = {
+            transactionId: txnId,
+            amount: selectedPackage.price,
+            package: selectedPackage.name,
+            phone: `+254${phone.substring(1)}`,
+            mpesaRef,
+            expiresAt,
+            speed: selectedPackage.speed,
+          }
+
+          setPaymentData(successPaymentData)
+
+          toast.dismiss("payment-loading")
+          toast.success("Payment successful!", {
+            description: "You are now connected to the internet",
+            duration: 4000,
+          })
+
+          setTimeout(() => {
+            setShowPaymentModal(false)
+          }, 1000)
+        } else if (paymentStatus === "pending") {
+          // Poll for payment status
+          pollPaymentStatus(txnId)
+        }
+      } else {
+        throw new Error(response.error || "Payment initiation failed")
+      }
+    } catch (error) {
+      setStatus("failed")
+      toast.dismiss("payment-loading")
+      const errMsg = error instanceof Error ? error.message : String(error)
+      toast.error("Payment error", {
+        description: errMsg || "An unexpected error occurred. Please try again.",
+        duration: 4000,
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const pollPaymentStatus = async (txnId: string) => {
+    const maxAttempts = 30 // 5 minutes with 10-second intervals
+    let attempts = 0
+
+    const poll = async () => {
+      try {
+        const response = await apiClient.checkPaymentStatus(txnId)
+
+        if (response.success && response.data) {
+          const { status: paymentStatus, mpesaRef, expiresAt } = response.data
+
+          if (paymentStatus === "completed") {
+            const successPaymentData = {
+              transactionId: txnId,
+              amount: selectedPackage.price,
+              package: selectedPackage.name,
+              phone: `+254${phone.substring(1)}`,
+              mpesaRef,
+              expiresAt,
+              speed: selectedPackage.speed,
+            }
+
+            setPaymentData(successPaymentData)
+            setStatus("completed")
+
+            toast.dismiss("payment-loading")
+            toast.success("Payment successful!", {
+              description: "You are now connected to the internet",
+              duration: 4000,
+            })
+
+            setTimeout(() => {
+              setShowPaymentModal(false)
+            }, 1000)
+            return
+          } else if (paymentStatus === "failed") {
+            setStatus("failed")
+            toast.dismiss("payment-loading")
+            toast.error("Payment failed", {
+              description: "Please check your M-Pesa balance and try again",
+              duration: 4000,
+            })
+            return
+          }
+        }
+
+        attempts++
+        if (attempts < maxAttempts) {
+          setTimeout(poll, 10000) // Poll every 10 seconds
+        } else {
+          setStatus("failed")
+          toast.dismiss("payment-loading")
+          toast.error("Payment timeout", {
+            description: "Payment is taking longer than expected. Please contact support.",
+            duration: 4000,
+          })
+        }
+      } catch (error) {
+        const errMsg = error instanceof Error ? error.message : String(error)
+        console.error("Error polling payment status:", errMsg)
+        attempts++
+        if (attempts < maxAttempts) {
+          setTimeout(poll, 10000)
+        }
+      }
+    }
+
+    poll()
+  }
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setPhone(value)
+
+    // Real-time validation feedback
+    if (value && !/^(07|01)\d{0,8}$/.test(value)) {
+      toast.error("Invalid format", {
+        description: "Phone number should start with 07 or 01",
+        duration: 2000,
+      })
+    }
+  }
+
   return (
     <>
       <ToastProvider />
@@ -194,7 +397,7 @@ export default function PackagesPage() {
           {/* Packages Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
             {packages.map((pkg) => (
-              <PackageCard key={pkg.id} pkg={pkg} />
+              <PackageCard key={pkg.id} pkg={pkg} onPackageSelect={handlePackageSelect} />
             ))}
           </div>
 
@@ -263,6 +466,107 @@ export default function PackagesPage() {
         </main>
 
         <Footer />
+
+        {/* Payment Modal */}
+        {showPaymentModal && selectedPackage && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <Card className="w-full max-w-md bg-white dark:bg-slate-800">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Package className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" />
+                  Complete Payment
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Selected Package Info */}
+                <div className="text-center p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                  <h3 className="font-semibold text-lg">{selectedPackage.name}</h3>
+                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    Ksh {selectedPackage.price}
+                  </p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    {selectedPackage.duration} • {selectedPackage.speed}
+                  </p>
+                </div>
+
+                {/* Phone Input */}
+                <div className="space-y-2">
+                  <Label htmlFor="modal-phone" className="flex items-center">
+                    <Phone className="w-4 h-4 mr-2" />
+                    M-Pesa Number
+                  </Label>
+                  <Input
+                    id="modal-phone"
+                    type="tel"
+                    placeholder="0712 345 678"
+                    value={phone}
+                    onChange={handlePhoneChange}
+                    className="bg-white/50 dark:bg-slate-700/50"
+                    maxLength={10}
+                  />
+                </div>
+
+                {/* Payment Button */}
+                <Button
+                  onClick={handlePayment}
+                  disabled={isLoading || !phone || phone.length !== 10}
+                  className="w-full h-12 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold transition-all duration-300 disabled:opacity-50"
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-5 h-5 mr-2" />
+                      Pay with M-Pesa - Ksh {selectedPackage.price}
+                    </>
+                  )}
+                </Button>
+
+                {/* Status Display */}
+                {status && (
+                  <div className="text-center">
+                    {status === "pending" && (
+                      <p className="text-yellow-600 dark:text-yellow-400">Processing payment...</p>
+                    )}
+                    {status === "completed" && (
+                      <p className="text-green-600 dark:text-green-400">Payment successful!</p>
+                    )}
+                    {status === "failed" && (
+                      <p className="text-red-600 dark:text-red-400">Payment failed. Please try again.</p>
+                    )}
+                  </div>
+                )}
+
+                <Button
+                  variant="outline"
+                  onClick={() => setShowPaymentModal(false)}
+                  className="w-full"
+                  disabled={isLoading}
+                >
+                  Cancel
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Success Modal */}
+        {paymentData && (
+          <PaymentSuccessModal
+            isOpen={true}
+            onClose={() => {
+              setPaymentData(null)
+              setShowPaymentModal(false)
+              setSelectedPackage(null)
+              setPhone("")
+              setStatus("")
+            }}
+            paymentData={paymentData}
+          />
+        )}
       </div>
     </>
   )

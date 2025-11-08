@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model Admin {
@@ -42,6 +42,19 @@ model Payment {
   expiresAt     DateTime?
   userId        Int?
   user          User?    @relation(fields: [userId], references: [id])
+  authUserId    Int?
+  authUser      AuthUser? @relation(fields: [authUserId], references: [id])
+}
+
+model AuthUser {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  phone     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  payments  Payment[]
 }
 
 model SupportRequest {

@@ -50,7 +50,14 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview")
   const [stats, setStats] = useState<SystemStats | null>(null)
   const router = useRouter()
-  // Temporarily removed authentication checks for free access
+
+  // Redirect to admin login if not authenticated
+  useEffect(() => {
+    const adminToken = localStorage.getItem('admin_token')
+    if (!adminToken) {
+      router.push('/admin/login')
+    }
+  }, [router])
 
   useEffect(() => {
     fetchStats()
@@ -97,16 +104,13 @@ export default function AdminDashboard() {
     <>
       <ToastProvider />
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-        <AdminHeader>
-          {/* Temporarily removed admin info and logout button for free access */}
-        </AdminHeader>
+        <AdminHeader />
         <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8 flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Admin Dashboard</h1>
               <p className="text-slate-600 dark:text-slate-400">Manage your WiFi billing system</p>
             </div>
-            {/* Temporarily removed admin display for free access */}
           </div>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10">
