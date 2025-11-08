@@ -196,10 +196,16 @@ export default function SupportPage() {
       }
     }
 
+    const handleWsConnection = (event: CustomEvent) => {
+      setWsConnected(event.detail.connected)
+    }
+
     window.addEventListener("support_request_update", handleWsMessage as EventListener)
+    window.addEventListener("websocket_connected", handleWsConnection as EventListener)
 
     return () => {
       window.removeEventListener("support_request_update", handleWsMessage as EventListener)
+      window.removeEventListener("websocket_connected", handleWsConnection as EventListener)
     }
   }, [user?.phone])
 
