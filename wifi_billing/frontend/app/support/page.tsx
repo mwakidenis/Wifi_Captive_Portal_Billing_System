@@ -383,74 +383,51 @@ export default function SupportPage() {
                     </span>
                   </div>
                 </CardTitle>
-                <div className="flex gap-2 mt-4">
-                  <Input
-                    placeholder="Enter phone number to view requests..."
-                    value={viewRequestsPhone}
-                    onChange={(e) => setViewRequestsPhone(e.target.value)}
-                    className="bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-white/10"
-                  />
-                  <Button
-                    onClick={() => {
-                      if (viewRequestsPhone.trim()) {
-                        loadUserRequests(viewRequestsPhone.trim())
-                        setShowRequestViewer(!showRequestViewer)
-                      }
-                    }}
-                    variant={showRequestViewer ? "default" : "outline"}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                    disabled={!viewRequestsPhone.trim()}
-                  >
-                    {showRequestViewer ? 'Hide' : 'View'} Requests
-                  </Button>
-                </div>
               </CardHeader>
-              {showRequestViewer && (
-                <CardContent>
-                  {loadingRequests ? (
-                    <div className="flex items-center justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">Loading requests...</p>
-                    </div>
-                  ) : userRequests.length > 0 ? (
-                    <div className="space-y-4">
-                      {userRequests
-                        .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                        .map((request: any) => (
-                        <div key={request.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600 hover:shadow-md transition-shadow">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <h4 className="font-medium text-slate-900 dark:text-white">{request.name}</h4>
-                              {getStatusBadge(request.status)}
-                            </div>
-                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">{request.message}</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-500">
-                              Transaction: {request.transactionCode} • {new Date(request.createdAt).toLocaleDateString()} • {new Date(request.createdAt).toLocaleTimeString()}
-                            </p>
+              <CardContent>
+                {loadingRequests ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">Loading requests...</p>
+                  </div>
+                ) : userRequests.length > 0 ? (
+                  <div className="space-y-4">
+                    {userRequests
+                      .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                      .map((request: any) => (
+                      <div key={request.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600 hover:shadow-md transition-shadow">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h4 className="font-medium text-slate-900 dark:text-white">{request.name}</h4>
+                            {getStatusBadge(request.status)}
                           </div>
-                          <div className="text-right">
-                            <p className="text-xs text-slate-400 dark:text-slate-500">ID: {request.id}</p>
-                          </div>
+                          <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">{request.message}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-500">
+                            Transaction: {request.transactionCode} • {new Date(request.createdAt).toLocaleDateString()} • {new Date(request.createdAt).toLocaleTimeString()}
+                          </p>
                         </div>
-                      ))}
-                      <div className="text-center mt-4">
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                          Status updates automatically • {wsConnected ? 'Real-time updates active' : 'Updates every 5 seconds'}
-                        </p>
+                        <div className="text-right">
+                          <p className="text-xs text-slate-400 dark:text-slate-500">ID: {request.id}</p>
+                        </div>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <p className="text-slate-600 dark:text-slate-400 mb-2">
-                        No support requests found for this phone number.
-                      </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-500">
-                        Enter a phone number above to view associated support requests.
+                    ))}
+                    <div className="text-center mt-4">
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Status updates automatically • {wsConnected ? 'Real-time updates active' : 'Updates every 5 seconds'}
                       </p>
                     </div>
-                  )}
-                </CardContent>
-              )}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-slate-600 dark:text-slate-400 mb-2">
+                      You haven't submitted any support requests yet.
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-500">
+                      Submit a request below and it will appear here automatically.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
             </Card>
           </div>
 
