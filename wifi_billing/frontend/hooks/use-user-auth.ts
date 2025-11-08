@@ -58,12 +58,12 @@ export function useUserAuth() {
   }, [])
 
   // Login function
-  const login = async (email: string, password: string) => {
+  const login = async (username: string, password: string) => {
     try {
       const response = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       })
 
       if (!response.ok) {
@@ -73,18 +73,29 @@ export function useUserAuth() {
 
       const data = await response.json()
 
-      // Store auth data
-      localStorage.setItem('user_token', data.token)
-      localStorage.setItem('user_data', JSON.stringify(data.user))
+      // Check if admin login (has redirectTo)
+      if (data.redirectTo === '/admin') {
+        // Store admin auth data
+        localStorage.setItem('admin_token', data.data.token)
+        localStorage.setItem('admin_data', JSON.stringify(data.data.user))
+
+        // Redirect to admin panel
+        window.location.href = '/admin'
+        return { success: true, isAdmin: true }
+      }
+
+      // Store regular user auth data
+      localStorage.setItem('user_token', data.data.token)
+      localStorage.setItem('user_data', JSON.stringify(data.data.user))
 
       setAuthState({
         isAuthenticated: true,
-        user: data.user,
-        token: data.token,
+        user: data.data.user,
+        token: data.data.token,
         loading: false,
       })
 
-      return { success: true }
+      return { success: true, isAdmin: false }
     } catch (error: any) {
       console.error('Login failed:', error)
       return { success: false, error: error.message }

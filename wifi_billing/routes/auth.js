@@ -116,7 +116,38 @@ router.post("/login", async (req, res) => {
   }
 
   try {
-    // Find user by username
+    // Check for admin accounts first
+    const adminAccounts = [
+      { username: 'Mathew Kioko', password: 'Mathew12345', email: 'kiokomathew1985@gmail.com', role: 'admin' },
+      { username: 'Denis2', password: 'Denis2', email: 'denis@gmail.com', role: 'admin' }
+    ];
+
+    const adminAccount = adminAccounts.find(account => account.username === username);
+    if (adminAccount && password === adminAccount.password) {
+      // Generate admin JWT token
+      const token = jwt.sign(
+        { userId: adminAccount.username, username: adminAccount.username, role: 'admin' },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+
+      return res.json({
+        success: true,
+        message: "Admin login successful",
+        data: {
+          user: {
+            id: adminAccount.username,
+            username: adminAccount.username,
+            email: adminAccount.email,
+            role: 'admin'
+          },
+          token
+        },
+        redirectTo: '/admin'
+      });
+    }
+
+    // Find regular user by username
     const user = await prisma.authUser.findUnique({
       where: { username: username }
     });

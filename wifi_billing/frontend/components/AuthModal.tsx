@@ -24,7 +24,7 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
   const { toast } = useToast()
 
   const [loginData, setLoginData] = useState({
-    email: '',
+    username: '',
     password: ''
   })
 
@@ -165,13 +165,13 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
           <TabsContent value="login" className="space-y-4">
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="login-email">Email</Label>
+                <Label htmlFor="login-username">Username</Label>
                 <Input
-                  id="login-email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={loginData.email}
-                  onChange={(e) => setLoginData(prev => ({ ...prev, email: e.target.value }))}
+                  id="login-username"
+                  type="text"
+                  placeholder="Enter your username"
+                  value={loginData.username}
+                  onChange={(e) => setLoginData(prev => ({ ...prev, username: e.target.value }))}
                   required
                   disabled={isLoading}
                 />
