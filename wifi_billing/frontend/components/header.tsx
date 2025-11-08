@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Wifi, Menu, X, User, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -11,10 +11,29 @@ import Link from "next/link"
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
-  const { isAuthenticated, user, logout } = useUserAuth()
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [user, setUser] = useState<any>(null)
+  const { logout } = useUserAuth()
 
-  const handleAuthSuccess = (user, token) => {
+  useEffect(() => {
+    const token = localStorage.getItem('user_token')
+    const userData = localStorage.getItem('user_data')
+    if (token && userData) {
+      setIsAuthenticated(true)
+      setUser(JSON.parse(userData))
+    }
+  }, [])
+
+  const handleAuthSuccess = (user: any, token: string) => {
     setShowAuthModal(false)
+    setIsAuthenticated(true)
+    setUser(user)
+  }
+
+  const handleLogout = () => {
+    logout()
+    setIsAuthenticated(false)
+    setUser(null)
   }
 
   return (
@@ -53,47 +72,36 @@ export function Header() {
             >
               Support
             </Link>
-
             {isAuthenticated ? (
-              <>
-                <Link
-                  href="/dashboard"
-                  className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
-                >
-                  Dashboard
-                </Link>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-slate-600 dark:text-slate-300">
-                    Hi, {user?.name}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={logout}
-                    className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+              <div className="flex items-center space-x-4">
+                {user?.username === 'Denis2' && (
+                  <Link
+                    href="/admin"
+                    className="text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
                   >
-                    <LogOut className="h-4 w-4" />
-                  </Button>
-                </div>
-              </>
+                    Admin Dashboard
+                  </Link>
+                )}
+                <Button
+                  onClick={handleLogout}
+                  variant="ghost"
+                  size="sm"
+                  className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </Button>
+              </div>
             ) : (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowAuthModal(true)}
-                className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+              <Link
+                href="/login"
+                className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
               >
-                <User className="h-4 w-4 mr-2" />
-                Sign In
-              </Button>
+                Login
+              </Link>
             )}
 
-            <Link
-              href="/admin"
-              className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
-            >
-              Admin
-            </Link>
+
             <ThemeToggle />
           </nav>
 
@@ -138,52 +146,39 @@ export function Header() {
               </Link>
 
               {isAuthenticated ? (
-                <>
-                  <Link
-                    href="/dashboard"
-                    className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
-                  <div className="flex items-center justify-between py-2">
-                    <span className="text-sm text-slate-600 dark:text-slate-300">
-                      Hi, {user?.name}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        logout()
-                        setIsMenuOpen(false)
-                      }}
-                      className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                <div className="flex flex-col space-y-2 pt-2 border-t border-slate-200/20 dark:border-white/10">
+                  {user?.username === 'Denis2' && (
+                    <Link
+                      href="/admin"
+                      className="text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
                     >
-                      <LogOut className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </>
+                      Admin Dashboard
+                    </Link>
+                  )}
+                  <Button
+                    onClick={() => {
+                      handleLogout()
+                      setIsMenuOpen(false)
+                    }}
+                    variant="ghost"
+                    size="sm"
+                    className="justify-start text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </Button>
+                </div>
               ) : (
-                <Button
-                  variant="ghost"
-                  className="justify-start text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
-                  onClick={() => {
-                    setShowAuthModal(true)
-                    setIsMenuOpen(false)
-                  }}
+                <Link
+                  href="/login"
+                  className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
                 >
-                  <User className="h-4 w-4 mr-2" />
-                  Sign In
-                </Button>
+                  Login
+                </Link>
               )}
 
-              <Link
-                href="/admin"
-                className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Admin Dashboard
-              </Link>
             </nav>
           </div>
         )}

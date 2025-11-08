@@ -216,27 +216,68 @@ class ApiClient {
     return this.request(`/api/transactions/${transactionId}/receipt`)
   }
 
+  // Auth APIs
+  async register(data: {
+    username: string
+    email?: string
+    phone: string
+    password: string
+  }): Promise<ApiResponse<{
+    user: { id: number; username: string; email: string | null; phone: string }
+    token: string
+  }>> {
+    return this.request("/auth/register", {
+      method: "POST",
+      body: JSON.stringify(data),
+    })
+  }
+
+  async login(data: { username: string; password: string }): Promise<ApiResponse<{
+    user: { id: number; username: string; email: string | null; phone: string }
+    token: string
+  }>> {
+    return this.request("/auth/login", {
+      method: "POST",
+      body: JSON.stringify(data),
+    })
+  }
+
   // Support APIs
   async submitSupportRequest(data: {
     name: string
-    email: string
     phone: string
-    subject: string
+    transactionCode: string
     message: string
   }): Promise<ApiResponse> {
-    return { success: false, error: "Support API is not implemented" }
+    return this.request("/api/support/submit", {
+      method: "POST",
+      body: JSON.stringify(data),
+    })
   }
 
   async getSupportRequests(params?: {
     status?: string
     page?: number
     limit?: number
+    search?: string
   }): Promise<ApiResponse<{ requests: any[]; total: number; page: number; totalPages: number }>> {
     const queryParams = new URLSearchParams()
     if (params?.status) queryParams.append("status", params.status)
     if (params?.page) queryParams.append("page", params.page.toString())
     if (params?.limit) queryParams.append("limit", params.limit.toString())
+    if (params?.search) queryParams.append("search", params.search)
     return this.request(`/api/support/requests?${queryParams.toString()}`)
+  }
+
+  async updateSupportRequestStatus(id: number, status: string): Promise<ApiResponse> {
+    return this.request(`/api/support/requests/${id}/status`, {
+      method: "PUT",
+      body: JSON.stringify({ status }),
+    })
+  }
+
+  async getSupportRequest(id: number): Promise<ApiResponse<any>> {
+    return this.request(`/api/support/requests/${id}`)
   }
 
   // System APIs

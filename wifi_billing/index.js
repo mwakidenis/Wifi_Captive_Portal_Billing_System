@@ -14,8 +14,8 @@ const {
 const mpesaRoutes = require("./routes/mpesaRoutes");
 const mpesaCallback = require("./routes/mpesaCallback");
 
-// Auth routes
-const authRoutes = require("./routes/auth");
+// Support routes
+const supportRoutes = require("./routes/support");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -210,15 +210,19 @@ app.get("/network/status", authMiddleware, async (req, res) => {
   res.json({ success: true, data: resp.data });
 });
 // -------------------- AUTH ROUTES --------------------
-app.use("/api/auth", authRoutes);
+const authRoutes = require("./routes/auth");
+app.use("/auth", authRoutes);
 
 // -------------------- ADMIN ROUTES --------------------
-const adminRoutes = require("./routes/admin");
-app.use("/api/admin", adminRoutes);
+// const adminRoutes = require("./routes/admin");
+// app.use("/api/admin", adminRoutes);
 
 // -------------------- M-PESA ROUTES --------------------
 app.use("/api", mpesaRoutes);
 app.use("/api", mpesaCallback);
+
+// -------------------- SUPPORT ROUTES --------------------
+app.use("/api/support", supportRoutes);
 
 
 // -------------------- DEVICE INFO ROUTE --------------------

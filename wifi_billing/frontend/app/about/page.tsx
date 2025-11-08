@@ -188,26 +188,45 @@ export default function AboutPage() {
           {/* Team Section */}
           <div className="mb-16">
             <h2 className="text-3xl font-bold text-center text-slate-900 dark:text-white mb-12">Meet Our Team</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {teamMembers.map((member, index) => (
-                <Card
-                  key={index}
-                  className="bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-white/10 text-center"
-                >
-                  <CardContent className="p-6">
-                    <img
-                      src={member.image || "/placeholder.svg"}
-                      alt={member.name}
-                      className="w-24 h-24 rounded-full mx-auto mb-4 object-cover"
-                    />
-                    <h3 className="font-semibold text-slate-900 dark:text-white mb-1">{member.name}</h3>
-                    <Badge variant="outline" className="mb-3">
-                      {member.role}
-                    </Badge>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">{member.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              <Card className="bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-white/10 text-center hover:scale-105 transition-transform">
+                <CardContent className="p-8">
+                  <div className="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mb-6">
+                    <Users className="w-12 h-12 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Kaaria Denis</h3>
+                  <p className="text-blue-600 dark:text-blue-400 font-semibold mb-4">CEO & Founder</p>
+                  <p className="text-slate-600 dark:text-slate-400">
+                    Visionary leader driving innovation in WiFi connectivity solutions across Kenya.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-white/10 text-center hover:scale-105 transition-transform">
+                <CardContent className="p-8">
+                  <div className="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center mb-6">
+                    <Users className="w-12 h-12 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Mathew Kioko</h3>
+                  <p className="text-green-600 dark:text-green-400 font-semibold mb-4">CTO</p>
+                  <p className="text-slate-600 dark:text-slate-400">
+                    Technical expert overseeing system architecture and cutting-edge technology implementation.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-white/10 text-center hover:scale-105 transition-transform">
+                <CardContent className="p-8">
+                  <div className="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center mb-6">
+                    <Users className="w-12 h-12 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Nehemiah Benjamin</h3>
+                  <p className="text-purple-600 dark:text-purple-400 font-semibold mb-4">Operations Manager</p>
+                  <p className="text-slate-600 dark:text-slate-400">
+                    Ensures smooth operations and exceptional customer experience across all services.
+                  </p>
+                </CardContent>
+              </Card>
             </div>
           </div>
 

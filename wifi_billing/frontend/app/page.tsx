@@ -73,6 +73,14 @@ export default function UserPortal() {
   }
 
   const handlePayment = async () => {
+    // Check if user is authenticated first
+    const token = localStorage.getItem('user_token')
+    if (!token) {
+      // Redirect to login page
+      window.location.href = '/login'
+      return
+    }
+
     // Validation
     if (!/^(07|01)\d{8}$/.test(phone)) {
       toast.error("Invalid phone number", {

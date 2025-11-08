@@ -22,6 +22,7 @@ import {
   MoreHorizontal,
   UserX,
   WifiOff,
+  MessageSquare,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -43,6 +44,7 @@ import StatsCards from "@/components/admin/StatsCards"
 import UserManagement from "@/components/admin/UserManagement"
 import PaymentManagement from "@/components/admin/PaymentManagement"
 import SystemSettings from "@/components/admin/SystemSettings"
+import SupportManagement from "@/components/admin/SupportManagement"
 
 // Main Admin Dashboard Component
 export default function AdminDashboard() {
@@ -51,13 +53,6 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<SystemStats | null>(null)
   const router = useRouter()
 
-  // Redirect to admin login if not authenticated
-  useEffect(() => {
-    const adminToken = localStorage.getItem('admin_token')
-    if (!adminToken) {
-      router.push('/admin/login')
-    }
-  }, [router])
 
   useEffect(() => {
     fetchStats()
@@ -113,7 +108,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10">
+            <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:grid-cols-5 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <Activity className="h-4 w-4" />
                 <span className="hidden sm:inline">Overview</span>
@@ -125,6 +120,10 @@ export default function AdminDashboard() {
               <TabsTrigger value="payments" className="flex items-center gap-2">
                 <CreditCard className="h-4 w-4" />
                 <span className="hidden sm:inline">Payments</span>
+              </TabsTrigger>
+              <TabsTrigger value="issues" className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                <span className="hidden sm:inline">Issues</span>
               </TabsTrigger>
               <TabsTrigger value="settings" className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
@@ -143,6 +142,9 @@ export default function AdminDashboard() {
             </TabsContent>
             <TabsContent value="payments">
               <PaymentManagement />
+            </TabsContent>
+            <TabsContent value="issues">
+              <SupportManagement />
             </TabsContent>
             <TabsContent value="settings">
               <SystemSettings />

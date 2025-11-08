@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 model Admin {
@@ -48,9 +48,9 @@ model Payment {
 
 model AuthUser {
   id        Int      @id @default(autoincrement())
-  email     String   @unique
+  username  String   @unique
+  email     String?
   password  String
-  name      String
   phone     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -58,8 +58,12 @@ model AuthUser {
 }
 
 model SupportRequest {
-  id        Int      @id @default(autoincrement())
-  phone     String
-  message   String
-  createdAt DateTime @default(now())
+  id             Int      @id @default(autoincrement())
+  name           String
+  phone          String
+  transactionCode String
+  message        String
+  status         String   @default("pending") // pending, in_progress, resolved, closed
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

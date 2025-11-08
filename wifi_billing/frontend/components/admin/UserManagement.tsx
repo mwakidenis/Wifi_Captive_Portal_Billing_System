@@ -26,18 +26,52 @@ const UserManagement = () => {
   const fetchUsers = async () => {
     setLoading(true)
     try {
-      const response = await apiClient.getUsers({
+      // First try to get regular users
+      const userResponse = await apiClient.getUsers({
         search: searchTerm,
         status: statusFilter,
         page: currentPage,
         limit: 10,
       })
-      if (response.success && response.data) {
-        setUsers(response.data.users)
-        setTotalPages(response.data.totalPages)
-      } else {
-        throw new Error(response.error || "Failed to fetch users")
+
+      // Also fetch auth users (registered users)
+      const authResponse = await fetch('http://localhost:5000/auth/profile', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('admin_token') || localStorage.getItem('user_token')}`
+        }
+      })
+
+      let allUsers = []
+      if (userResponse.success && userResponse.data) {
+        allUsers = [...userResponse.data.users]
       }
+
+      // If we can get auth users, add them to the list
+      if (authResponse.ok) {
+        try {
+          const authData = await authResponse.json()
+          if (authData.success && authData.data) {
+            // Convert auth user to user format
+            const authUser = {
+              id: authData.data.id,
+              phone: authData.data.phone,
+              macAddress: "Not set",
+              status: "registered",
+              currentPackage: null,
+              expiresAt: null,
+              totalSpent: 0,
+              sessionsCount: 0,
+              lastSeen: authData.data.createdAt
+            }
+            allUsers.push(authUser)
+          }
+        } catch (e) {
+          console.log("Could not fetch auth users")
+        }
+      }
+
+      setUsers(allUsers)
+      setTotalPages(Math.ceil(allUsers.length / 10))
     } catch (error: any) {
       console.error("Error fetching users:", error)
       toast.error("Failed to load users", {
@@ -53,6 +87,7 @@ const UserManagement = () => {
       active: { color: "bg-green-500/10 text-green-600 dark:text-green-400", label: "Active" },
       expired: { color: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400", label: "Expired" },
       blocked: { color: "bg-red-500/10 text-red-600 dark:text-red-400", label: "Blocked" },
+      registered: { color: "bg-blue-500/10 text-blue-600 dark:text-blue-400", label: "Registered" },
     } as const
     type StatusKey = keyof typeof statusConfig
     const config = statusConfig[status as StatusKey] || statusConfig.expired

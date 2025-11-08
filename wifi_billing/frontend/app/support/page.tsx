@@ -14,6 +14,8 @@ import {
   ChevronDown,
   ChevronUp,
   Send,
+  Users,
+  User,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -149,14 +151,12 @@ const FAQItem = ({ question, answer }) => {
 }
 
 export default function SupportPage() {
-  useDynamicTitle("Support")
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [contactForm, setContactForm] = useState({
     name: "",
-    email: "",
     phone: "",
-    subject: "",
+    transactionCode: "",
     message: "",
   })
 
@@ -188,9 +188,8 @@ export default function SupportPage() {
         })
         setContactForm({
           name: "",
-          email: "",
           phone: "",
-          subject: "",
+          transactionCode: "",
           message: "",
         })
       } else {
@@ -229,6 +228,83 @@ export default function SupportPage() {
             <p className="text-xl text-slate-600 dark:text-slate-300 mb-8 max-w-3xl mx-auto">
               Get instant support for all your WiFi and payment questions. Our team is here to help you 24/7.
             </p>
+          </div>
+
+          {/* Contact Form - Moved to Top */}
+          <div className="max-w-2xl mx-auto mb-16" id="contact">
+            <Card className="bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-white/10">
+              <CardHeader>
+                <CardTitle className="text-slate-900 dark:text-white text-center">
+                  Need Help? Contact Us
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleContactSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="name" className="text-slate-700 dark:text-slate-300">
+                        Full Name
+                      </Label>
+                      <Input
+                        id="name"
+                        value={contactForm.name}
+                        onChange={(e) => handleInputChange("name", e.target.value)}
+                        className="bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-white/10"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="phone" className="text-slate-700 dark:text-slate-300">
+                        Phone Number
+                      </Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        value={contactForm.phone}
+                        onChange={(e) => handleInputChange("phone", e.target.value)}
+                        className="bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-white/10"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="transactionCode" className="text-slate-700 dark:text-slate-300">
+                      Transaction Code
+                    </Label>
+                    <Input
+                      id="transactionCode"
+                      value={contactForm.transactionCode}
+                      onChange={(e) => handleInputChange("transactionCode", e.target.value)}
+                      className="bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-white/10"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="message" className="text-slate-700 dark:text-slate-300">
+                      Message
+                    </Label>
+                    <Textarea
+                      id="message"
+                      rows={5}
+                      value={contactForm.message}
+                      onChange={(e) => handleInputChange("message", e.target.value)}
+                      className="bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-white/10"
+                      required
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold"
+                  >
+                    <Send className="w-4 h-4 mr-2" />
+                    Submit
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Contact Methods */}
@@ -316,97 +392,6 @@ export default function SupportPage() {
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* Contact Form */}
-          <div className="max-w-2xl mx-auto" id="contact">
-            <Card className="bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-white/10">
-              <CardHeader>
-                <CardTitle className="text-slate-900 dark:text-white text-center">
-                  Still Need Help? Contact Us
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleContactSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="name" className="text-slate-700 dark:text-slate-300">
-                        Full Name
-                      </Label>
-                      <Input
-                        id="name"
-                        value={contactForm.name}
-                        onChange={(e) => handleInputChange("name", e.target.value)}
-                        className="bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-white/10"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="phone" className="text-slate-700 dark:text-slate-300">
-                        Phone Number
-                      </Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={contactForm.phone}
-                        onChange={(e) => handleInputChange("phone", e.target.value)}
-                        className="bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-white/10"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="email" className="text-slate-700 dark:text-slate-300">
-                      Email Address
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={contactForm.email}
-                      onChange={(e) => handleInputChange("email", e.target.value)}
-                      className="bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-white/10"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="subject" className="text-slate-700 dark:text-slate-300">
-                      Subject
-                    </Label>
-                    <Input
-                      id="subject"
-                      value={contactForm.subject}
-                      onChange={(e) => handleInputChange("subject", e.target.value)}
-                      className="bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-white/10"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="message" className="text-slate-700 dark:text-slate-300">
-                      Message
-                    </Label>
-                    <Textarea
-                      id="message"
-                      rows={5}
-                      value={contactForm.message}
-                      onChange={(e) => handleInputChange("message", e.target.value)}
-                      className="bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-white/10"
-                      required
-                    />
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold"
-                  >
-                    <Send className="w-4 h-4 mr-2" />
-                    Send Message
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
           </div>
 
           {/* Emergency Support */}

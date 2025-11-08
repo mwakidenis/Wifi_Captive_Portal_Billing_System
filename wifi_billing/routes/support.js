@@ -1,0 +1,171 @@
+const express = require("express");
+const prisma = require("../config/prismaClient");
+
+const router = express.Router();
+
+// Submit support request
+router.post("/submit", async (req, res) => {
+  console.log("Support request received:", req.body);
+
+  const { name, phone, transactionCode, message } = req.body;
+
+  if (!name || !phone || !transactionCode || !message) {
+    return res.status(400).json({
+      success: false,
+      error: "All fields are required"
+    });
+  }
+
+  // Basic phone validation (Kenyan format)
+  const phoneRegex = /^(\+254|254|0)[17]\d{8}$/;
+  if (!phoneRegex.test(phone)) {
+    return res.status(400).json({
+      success: false,
+      error: "Invalid phone number format"
+    });
+  }
+
+  try {
+    const supportRequest = await prisma.supportRequest.create({
+      data: {
+        name,
+        phone,
+        transactionCode,
+        message,
+        status: "pending"
+      }
+    });
+
+    console.log("Support request created:", supportRequest.id);
+
+    res.json({
+      success: true,
+      message: "Support request submitted successfully",
+      data: {
+        id: supportRequest.id,
+        status: supportRequest.status
+      }
+    });
+  } catch (error) {
+    console.error("Error creating support request:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to submit support request"
+    });
+  }
+});
+
+// Get all support requests (Admin only)
+router.get("/requests", async (req, res) => {
+  try {
+    const { status, page = 1, limit = 10, search } = req.query;
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+
+    const where = {};
+    if (status && status !== "all") {
+      where.status = status;
+    }
+
+    // Add search functionality
+    if (search) {
+      where.OR = [
+        { name: { contains: search } },
+        { phone: { contains: search } },
+        { transactionCode: { contains: search } },
+        { message: { contains: search } }
+      ];
+    }
+
+    const [requests, total] = await Promise.all([
+      prisma.supportRequest.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip: (pageNum - 1) * limitNum,
+        take: limitNum
+      }),
+      prisma.supportRequest.count({ where })
+    ]);
+
+    const totalPages = Math.ceil(total / limitNum);
+
+    res.json({
+      success: true,
+      data: {
+        requests,
+        total,
+        page: pageNum,
+        totalPages
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching support requests:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch support requests"
+    });
+  }
+});
+
+// Update support request status (Admin only)
+router.put("/requests/:id/status", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!["pending", "in_progress", "resolved", "closed"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid status"
+      });
+    }
+
+    const updatedRequest = await prisma.supportRequest.update({
+      where: { id: parseInt(id) },
+      data: { status }
+    });
+
+    res.json({
+      success: true,
+      message: "Support request status updated",
+      data: updatedRequest
+    });
+  } catch (error) {
+    console.error("Error updating support request:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to update support request"
+    });
+  }
+});
+
+// Get single support request (Admin only)
+router.get("/requests/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const request = await prisma.supportRequest.findUnique({
+      where: { id: parseInt(id) }
+    });
+
+    if (!request) {
+      return res.status(404).json({
+        success: false,
+        error: "Support request not found"
+      });
+    }
+
+    res.json({
+      success: true,
+      data: request
+    });
+  } catch (error) {
+    console.error("Error fetching support request:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch support request"
+    });
+  }
+});
+
+module.exports = router;

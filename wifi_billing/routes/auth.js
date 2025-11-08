@@ -1,170 +1,212 @@
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const prisma = require('../config/prismaClient');
-const { body, validationResult } = require('express-validator');
+const express = require("express");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const prisma = require("../config/prismaClient");
 
 const router = express.Router();
 
-// Signup route
-router.post('/signup', [
-  body('email').isEmail().normalizeEmail(),
-  body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters long'),
-  body('name').trim().isLength({ min: 2 }).withMessage('Name must be at least 2 characters long'),
-  body('phone').isMobilePhone().withMessage('Please provide a valid phone number'),
-], async (req, res) => {
+// Register new user
+router.post("/register", async (req, res) => {
+  console.log("Registration request received:", req.body);
+
+  const { username, email, phone, password } = req.body;
+
+  if (!username || !phone || !password) {
+    return res.status(400).json({
+      success: false,
+      error: "Username, phone, and password are required"
+    });
+  }
+
+  // Validate password (6 digits, alphanumeric combo)
+  const hasNumber = /\d/.test(password);
+  const hasLetter = /[a-zA-Z]/.test(password);
+  const isLengthValid = password.length === 6;
+
+  if (!hasNumber || !hasLetter || !isLengthValid) {
+    return res.status(400).json({
+      success: false,
+      error: "Password must be exactly 6 characters with both numbers and letters"
+    });
+  }
+
+  // Validate phone number (Kenyan format)
+  const phoneRegex = /^(\+254|254|0)[17]\d{8}$/;
+  if (!phoneRegex.test(phone)) {
+    return res.status(400).json({
+      success: false,
+      error: "Invalid phone number format"
+    });
+  }
+
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    const { email, password, name, phone } = req.body;
-
-    // Check if user already exists
+    // Check if username or phone already exists
     const existingUser = await prisma.authUser.findFirst({
       where: {
         OR: [
-          { email: email },
+          { username: username },
           { phone: phone }
         ]
       }
     });
 
     if (existingUser) {
-      return res.status(400).json({ error: 'User with this email or phone already exists' });
+      return res.status(400).json({
+        success: false,
+        error: "Username or phone number already exists"
+      });
     }
 
     // Hash password
-    const saltRounds = 12;
+    const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Create user
     const user = await prisma.authUser.create({
       data: {
-        email,
-        password: hashedPassword,
-        name,
+        username,
+        email: email || null,
         phone,
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        phone: true,
-        createdAt: true,
+        password: hashedPassword,
       }
     });
 
+    console.log("User created:", user.id);
+
     // Generate JWT token
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
+      { userId: user.id, username: user.username },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: "7d" }
     );
 
-    res.status(201).json({
-      message: 'User created successfully',
-      user,
-      token
+    res.json({
+      success: true,
+      message: "Account created successfully",
+      data: {
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          phone: user.phone
+        },
+        token
+      }
     });
-
   } catch (error) {
-    console.error('Signup error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error creating user:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to create account"
+    });
   }
 });
 
-// Login route
-router.post('/login', [
-  body('email').isEmail().normalizeEmail(),
-  body('password').exists().withMessage('Password is required'),
-], async (req, res) => {
+// Login user
+router.post("/login", async (req, res) => {
+  console.log("Login request received:", req.body);
+
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({
+      success: false,
+      error: "Username and password are required"
+    });
+  }
+
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    const { email, password } = req.body;
-
-    // Find user
+    // Find user by username
     const user = await prisma.authUser.findUnique({
-      where: { email }
+      where: { username: username }
     });
 
     if (!user) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({
+        success: false,
+        error: "Invalid credentials"
+      });
     }
 
     // Check password
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({
+        success: false,
+        error: "Invalid credentials"
+      });
     }
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
+      { userId: user.id, username: user.username },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: "7d" }
     );
 
     res.json({
-      message: 'Login successful',
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        phone: user.phone,
-      },
-      token
+      success: true,
+      message: "Login successful",
+      data: {
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          phone: user.phone
+        },
+        token
+      }
     });
-
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error logging in:", error);
+    res.status(500).json({
+      success: false,
+      error: "Login failed"
+    });
   }
 });
 
-// Get current user profile
-router.get('/profile', async (req, res) => {
+// Get current user profile (protected route)
+router.get("/profile", async (req, res) => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    const token = req.header("Authorization")?.replace("Bearer ", "");
 
     if (!token) {
-      return res.status(401).json({ error: 'Access denied. No token provided.' });
+      return res.status(401).json({
+        success: false,
+        error: "No token provided"
+      });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
     const user = await prisma.authUser.findUnique({
       where: { id: decoded.userId },
       select: {
         id: true,
+        username: true,
         email: true,
-        name: true,
         phone: true,
-        createdAt: true,
-        payments: {
-          orderBy: { timePurchased: 'desc' },
-          take: 10,
-        }
+        createdAt: true
       }
     });
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({
+        success: false,
+        error: "User not found"
+      });
     }
 
-    res.json({ user });
-
+    res.json({
+      success: true,
+      data: user
+    });
   } catch (error) {
-    console.error('Profile error:', error);
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching profile:", error);
+    res.status(401).json({
+      success: false,
+      error: "Invalid token"
+    });
   }
 });
 
