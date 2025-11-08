@@ -280,6 +280,10 @@ class ApiClient {
     return this.request(`/api/support/requests/${id}`)
   }
 
+  async getUserSupportRequests(phone: string): Promise<ApiResponse<any[]>> {
+    return this.request(`/api/support/user/requests?phone=${encodeURIComponent(phone)}`)
+  }
+
   // System APIs
   async getSystemStats(): Promise<ApiResponse<SystemStats>> {
     const resp = await this.request<any>("/api/admin/summary")
@@ -343,9 +347,11 @@ export class WebSocketClient {
   private reconnectAttempts = 0
   private maxReconnectAttempts = 5
   private reconnectInterval = 5000
+  private phone: string | null = null
 
-  connect(transactionId?: string) {
-    const wsUrl = `${API_BASE_URL.replace("http", "ws")}/ws${transactionId ? `/payments/${transactionId}` : ""}`
+  connect(phone?: string) {
+    this.phone = phone || null
+    const wsUrl = `${API_BASE_URL.replace("http", "ws")}/ws`
 
     try {
       this.ws = new WebSocket(wsUrl)
@@ -353,6 +359,12 @@ export class WebSocketClient {
       this.ws.onopen = () => {
         console.log("WebSocket connected")
         this.reconnectAttempts = 0
+        // Emit connection status event
+        window.dispatchEvent(new CustomEvent("websocket_connected", { detail: { connected: true } }))
+        // Subscribe to support updates for this phone
+        if (this.phone) {
+          this.send({ type: "subscribe", phone: this.phone })
+        }
       }
 
       this.ws.onmessage = (event) => {
@@ -362,6 +374,8 @@ export class WebSocketClient {
 
       this.ws.onclose = () => {
         console.log("WebSocket disconnected")
+        // Emit disconnection status event
+        window.dispatchEvent(new CustomEvent("websocket_connected", { detail: { connected: false } }))
         this.reconnect()
       }
 
@@ -393,6 +407,12 @@ export class WebSocketClient {
           detail: data.payload,
         }),
       )
+    } else if (data.type === "support_request_update") {
+      window.dispatchEvent(
+        new CustomEvent("support_request_update", {
+          detail: data.payload,
+        }),
+      )
     }
   }
 
@@ -401,7 +421,7 @@ export class WebSocketClient {
       this.reconnectAttempts++
       setTimeout(() => {
         console.log(`Attempting to reconnect WebSocket (${this.reconnectAttempts}/${this.maxReconnectAttempts})`)
-        this.connect()
+        this.connect(this.phone || undefined)
       }, this.reconnectInterval)
     }
   }
