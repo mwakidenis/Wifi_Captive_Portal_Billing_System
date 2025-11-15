@@ -7,6 +7,7 @@
     "build": "cd frontend && npm run build",
     "start": "NODE_ENV=production node server.js",
     "postinstall": "npx prisma generate",
+    "deploy:railway": "npm install && npm run build && railway up"
     "pm2:start": "pm2 start ecosystem.config.js",
     "pm2:stop": "pm2 stop ecosystem.config.js",
     "pm2:restart": "pm2 restart ecosystem.config.js",
@@ -19,7 +20,7 @@
     "render:deploy": "npm run build && npm start"
   },
   "keywords": [],
-  "author": "niGiddy",
+  "author": "Denis K.",
   "license": "ISC",
   "description": "",
   "dependencies": {
