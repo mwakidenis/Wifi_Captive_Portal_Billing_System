@@ -11,53 +11,75 @@ M-Pesa Based WiFi Billing System
 
 
 
-A comprehensive WiFi billing system enabling users to purchase internet access via M-Pesa STK Push.
-Ideal for cybercafés, small businesses, and public WiFi hotspots — with MikroTik router integration for secure MAC-based access control.
+
+
+A full WiFi billing system allowing customers to buy internet time via M-Pesa STK Push, with optional MikroTik MAC-based access control.
+Perfect for cyber cafés, public hotspots, estate WiFi and small ISPs.
 
 🌟 Features
 
-✔ M-Pesa STK Push Integration
+✔ M-Pesa STK Push integration
 
-✔ Time-Based Internet Access Packages
+✔ Time-based internet access packages
 
-✔ Admin Dashboard
+✔ Admin dashboard
 
-✔ MAC Address Whitelisting (MikroTik)
+✔ MikroTik MAC whitelisting
 
-✔ Real-Time Session + Payment Tracking
+✔ Real-time payment & session tracking
 
-✔ Modern Next.js + Tailwind UI
+✔ Modern React/Next.js front-end
 
-✔ Prisma ORM + MySQL
+✔ Prisma ORM + MySQL database
 
-🛠 Tech Stack
-
-Backend: Node.js, Express.js, Prisma
-Frontend: Next.js, React, TypeScript, Tailwind CSS
-Database: MySQL
-Router: MikroTik API
-Payments: M-Pesa Daraja API
-Auth: JWT + bcrypt
+✔ JWT authentication
 
 🚀 Live Demo
 
 🔗 https://anotherone-production-dcdb.up.railway.app/
 
+🛠 Tech Stack
+Backend
+
+Node.js
+
+Express.js
+
+Prisma ORM
+
+MySQL
+
+Frontend
+
+Next.js
+
+React
+
+TypeScript
+
+Tailwind CSS
+
+Other
+
+MikroTik Router API
+
+M-Pesa Daraja API
+
+JWT + bcrypt
+
 💻 Prerequisites
 
-Node.js 16+
+Node.js (16+)
 
 npm
 
-MySQL 8+
+MySQL Server (8+)
 
-Python 3.x (for hotspot server)
+Python 3.x (hotspot login server)
 
 M-Pesa Requirements
 
-Create an app in Safaricom Daraja
-
-Get:
+Register & create an app in Safaricom Daraja Portal, then obtain:
 
 Consumer Key
 
@@ -67,24 +89,26 @@ Passkey
 
 Shortcode
 
-MikroTik (Optional)
+MikroTik Router (Optional)
 
-RouterOS 6.x+
+RouterOS v6+
 
-API service enabled
+API enabled:
+
+/ip service set api disabled=no
 
 ⚡ Installation & Setup
-1. Fork & Clone the Repository
+1. Fork & Clone
 
-Fork this repo:
+Fork the repo:
 👉 https://github.com/mwakidenis/Mpesa-Based_WiFi_Billing_System
 
-Clone it:
+Clone:
 
 git clone https://github.com/mwakidenis/Mpesa-Based_WiFi_Billing_System.git
 cd Mpesa-Based_WiFi_Billing_System
 
-2. Install Dependencies
+2. Install all dependencies
 npm install
 
 cd frontend
@@ -92,13 +116,10 @@ npm install
 cd ..
 
 3. Create MySQL Database
-
-Create a database:
-
 CREATE DATABASE wifi_billing;
 
-4. Create .env File
-# M-Pesa
+4. Create .env
+# M-Pesa Settings
 MPESA_CONSUMER_KEY=your_key
 MPESA_CONSUMER_SECRET=your_secret
 MPESA_PASSKEY=your_passkey
@@ -108,7 +129,7 @@ MPESA_CALLBACK_URL=http://localhost:5000/api/mpesa/callback
 # Database
 DATABASE_URL="mysql://username:password@localhost:3306/wifi_billing"
 
-# Auth
+# Authentication
 JWT_SECRET=your_jwt_secret
 
 # Admin
@@ -118,26 +139,26 @@ ADMIN_PASSWORD=your_admin_password
 # Server
 PORT=5000
 
-# MikroTik (optional)
+# MikroTik (Optional)
 MIKROTIK_HOST=router_ip
 MIKROTIK_USERNAME=username
 MIKROTIK_PASSWORD=password
 
-5. Run Database Migrations
+5. Run migrations
 npx prisma migrate dev --name init
 npx prisma generate
 
-6. Create Admin User
+6. Create admin account
 node scripts/addAdmin.js
 
-🏃 Running the Application
-Backend
+🏃 Running the Project
+Backend Server
 npm start
 
 
 Runs at: http://localhost:5000
 
-Frontend
+Frontend (Next.js)
 cd frontend
 npm run dev
 
@@ -153,32 +174,32 @@ Login page: http://localhost:8080/login.html
 👥 Usage
 For Users
 
-Connect to the WiFi network
+Connect to WiFi
 
-Browser redirects to login page
+Browser redirects automatically
 
 Choose package
 
 Enter phone number
 
-Complete STK Push
+Approve M-Pesa STK Push
 
-Access granted automatically
+Internet access is granted
 
 For Admins
 
-Visit: http://localhost:3000/admin/login
+Login: /admin/login
 
-Manage:
+View users
 
-Users
+View payments
 
-Payments
+Adjust packages
 
-System settings
+Monitor activity
 
 🔗 API Endpoints
-Payment
+Payments
 POST /api/pay
 POST /api/mpesa/callback
 
@@ -191,19 +212,15 @@ User
 GET /api/packages
 GET /api/user/status
 
-⚙️ Configuration
-MikroTik
+🔧 Configuration
+MikroTik Auto-Whitelist
 
-Enable API:
+Add router details in .env
+System will automatically add/remove MAC using API.
 
-/ip service set api disabled=no
+Customize Internet Packages
 
-
-Add credentials in .env.
-
-Packages
-
-Modify in:
+Edit:
 
 frontend/lib/constants.ts
 
@@ -224,7 +241,7 @@ wifi_billing/
 ├── scripts/
 └── index.js
 
-Useful Commands
+Scripts
 npm run dev
 npm start
 cd frontend && npm run dev
@@ -233,21 +250,21 @@ cd frontend && npm run lint
 
 🔒 Security
 
-Change default admin credentials
+Change admin credentials instantly
 
-Use HTTPS in production
+Use HTTPS
 
-Update dependencies
+Validate all user inputs
 
 Enable rate limiting
 
-Validate all inputs
+Restrict database privileges
 
-Secure MySQL user privileges
+Never expose .env file
 
 🤝 Contributing
 
-Fork the repo: https://github.com/mwakidenis/Mpesa-Based_WiFi_Billing_System
+Fork: https://github.com/mwakidenis/Mpesa-Based_WiFi_Billing_System
 
 Create a branch:
 
@@ -264,16 +281,21 @@ Push:
 git push origin feature-name
 
 
-Open a Pull Request
+Submit PR
 
 ⚖ License
 
-MIT License — see LICENSE file.
+MIT License (see LICENSE)
 
 💌 Support
+📧 Email
 
-Email: mwakidenice@gmail.com
+mwakidenice@gmail.com
 
-WhatsApp: Chat on WhatsApp
+💬 WhatsApp
+
+👉 Chat on WhatsApp
+
+☕ Buy Me a Coffee
 
 Made with ❤️ in Africa for the World 🌍
