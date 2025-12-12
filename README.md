@@ -1,366 +1,196 @@
-M-Pesa Based WiFi Billing System
+# M-Pesa Based WiFi Billing System
 
-A comprehensive WiFi billing system that enables users to purchase internet access via M-Pesa STK Push payments. Designed for cybercafés, small businesses, and public WiFi hotspots, this system integrates with MikroTik routers for secure MAC address-based access control.
+[![Node.js](https://img.shields.io/badge/Node.js-16+-green)](https://nodejs.org/) 
+[![MySQL](https://img.shields.io/badge/MySQL-8+-blue)](https://www.mysql.com/)
+[![Next.js](https://img.shields.io/badge/Next.js-13-black)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-18-blue)](https://reactjs.org/)
+[![MIT License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Online-brightgreen)](https://anotherone-production-dcdb.up.railway.app/)
 
-🎯 Table of Contents
+A comprehensive WiFi billing system that allows users to purchase internet access via **M-Pesa STK Push payments**. Perfect for cybercafés, small businesses, and public WiFi hotspots, with MikroTik integration for secure MAC-based access control.
 
-About the Project
+---
 
-Features
+## 🌟 Features
 
-Tech Stack
+- **M-Pesa Integration**: STK Push payments directly from user phones  
+- **Time-Based Access**: Flexible internet access packages  
+- **Admin Dashboard**: Manage payments, users, and system settings  
+- **MAC Address Whitelisting**: Automatic router integration  
+- **Real-Time Monitoring**: Track sessions, payments, and system status  
+- **Responsive Frontend**: React-based UI with dark/light themes  
+- **Database Management**: Prisma ORM with MySQL  
 
-System Architecture
+---
 
-Getting Started
+## 🛠 Tech Stack
 
-Prerequisites
+- **Backend**: Node.js, Express.js, Prisma ORM  
+- **Frontend**: Next.js, React, TypeScript, Tailwind CSS  
+- **Database**: MySQL  
+- **Router Integration**: MikroTik API  
+- **Payment Gateway**: M-Pesa Daraja API  
+- **Authentication**: JWT + bcrypt  
 
-Installation
+---
 
-Environment Configuration
+## 🚀 Live Demo
 
-Database Setup
+Check it out online: [https://anotherone-production-dcdb.up.railway.app/](https://anotherone-production-dcdb.up.railway.app/)
 
-Running the Application
+---
 
-Usage
+## 💻 Prerequisites
 
-API Endpoints
+- Node.js (v16+)  
+- npm  
+- MySQL Server (v8+)  
+- Python 3.x (for hotspot server)  
 
-Database Schema / ERD
+### M-Pesa Setup
 
-Troubleshooting
+1. Register at [Safaricom Developer Portal](https://developer.safaricom.co.ke/)  
+2. Obtain: Consumer Key, Consumer Secret, Passkey, Shortcode  
 
-Development
+### MikroTik Router (Optional)
 
-Contributing
+- RouterOS 6.x+ with API access enabled  
+- Username/password credentials  
 
-Security
+---
 
-License
+## ⚡ Installation & Setup
 
-Support
-
-Acknowledgments
-
-🌍 About the Project
-
-This project is a WiFi billing system that allows users to pay for internet access via M-Pesa STK Push. It’s ideal for:
-
-Cybercafés
-
-Small businesses
-
-Public WiFi hotspots
-
-The system uses React & Next.js for the frontend, Node.js + Express for the backend, and MySQL for database management. Automatic router integration is supported via MikroTik API.
-
-✨ Features
-
-M-Pesa Integration: Secure STK Push payments directly from user phones.
-
-Time-Based Access: Flexible internet packages based on payment.
-
-Admin Dashboard: Manage users, payments, and system settings.
-
-MAC Address Whitelisting: Automatic router integration.
-
-Real-Time Monitoring: Track sessions, payments, and system status.
-
-Responsive Frontend: Modern React-based UI with dark/light themes.
-
-Database Management: Prisma ORM with MySQL for reliable storage.
-
-🛠️ Tech Stack
-
-Backend: Node.js, Express.js, Prisma ORM
-Frontend: Next.js, React, TypeScript, Tailwind CSS
-Database: MySQL
-Router Integration: MikroTik API
-Payment Gateway: M-Pesa Daraja API
-Authentication: JWT with bcrypt
-
-🏗️ System Architecture
-User Devices <--> WiFi Hotspot <--> Node.js API <--> MySQL Database
-                                  |
-                                  --> MikroTik Router (MAC Access)
-                                  --> M-Pesa Payment Gateway
-
-🚀 Getting Started
-Prerequisites
-
-Node.js (v16+)
-
-npm (comes with Node.js)
-
-MySQL Server (v8+)
-
-Python 3.x (for hotspot login server)
-
-M-Pesa Setup:
-
-Register at Safaricom Developer Portal
-
-Obtain Consumer Key, Consumer Secret, Passkey, Shortcode
-
-MikroTik Router (Optional):
-
-RouterOS v6+ with API access
-
-Router credentials
-
-Installation
-git clone https://github.com/yourusername/Mpesa_WiFi_Billing.git
-cd Mpesa_WiFi_Billing
+### 1. Clone Repository
+```bash
+git clone https://github.com/Nigiddy/Mpesa_Based-WiFi-Billing-System.git
+cd Mpesa_Based-WiFi-Billing-System
+2. Install Dependencies
+bash
+Copy code
 npm install
 cd frontend
 npm install
 cd ..
+3. Configure Database
+Create MySQL database wifi_billing
 
-Environment Configuration
+Add .env file with credentials:
 
-Create .env:
-
+env
+Copy code
+# M-Pesa
 MPESA_CONSUMER_KEY=your_key
 MPESA_CONSUMER_SECRET=your_secret
 MPESA_PASSKEY=your_passkey
 MPESA_SHORTCODE=your_shortcode
 MPESA_CALLBACK_URL=http://localhost:5000/api/mpesa/callback
 
+# Database
 DATABASE_URL="mysql://username:password@localhost:3306/wifi_billing"
+
+# JWT
 JWT_SECRET=your_jwt_secret
+
+# Admin
 ADMIN_USERNAME=admin
-ADMIN_PASSWORD=admin_pass
+ADMIN_PASSWORD=your_admin_password
+
+# Server
 PORT=5000
 
-MIKROTIK_HOST=your_router_ip
-MIKROTIK_USERNAME=your_router_user
-MIKROTIK_PASSWORD=your_router_password
-
-
-Note: Do not commit .env to Git.
-
-Database Setup
+# MikroTik (optional)
+MIKROTIK_HOST=router_ip
+MIKROTIK_USERNAME=username
+MIKROTIK_PASSWORD=password
+4. Database Migration
+bash
+Copy code
 npx prisma migrate dev --name init
 npx prisma generate
+5. Create Admin User
+bash
+Copy code
 node scripts/addAdmin.js
-
-Running the Application
+🏃 Running the Application
 Backend
+bash
+Copy code
 npm start
+Backend: http://localhost:5000
 
 Frontend
+bash
+Copy code
 cd frontend
 npm run dev
+Frontend: http://localhost:3000
 
-Hotspot Login Page
+Hotspot Login Server
+bash
+Copy code
 python -m http.server 8080 --directory hotspot
+Login page: http://localhost:8080/login.html
 
-Usage
+👥 Usage
 Users
+Connect to WiFi
 
-Connect to WiFi.
+Open browser → redirected to login
 
-Open browser → redirected to login page.
+Select package & enter phone number
 
-Select package and enter phone.
+Complete M-Pesa STK Push
 
-Complete M-Pesa STK Push payment.
-
-Access granted automatically.
+Access granted automatically
 
 Admins
-
 Login at http://localhost:3000/admin/login
 
-Manage users, payments, sessions, and router settings.
+Manage payments, users, and system status
 
-API Endpoints
-
+🔗 API Endpoints
 Payment
 
-POST /api/pay → Initiate M-Pesa payment
+POST /api/pay - Initiate payment
 
-POST /api/mpesa/callback → Payment callback
+POST /api/mpesa/callback - M-Pesa callback
 
 Admin
 
-POST /api/admin/login → Login
+POST /api/admin/login - Admin login
 
-GET /api/admin/payments → Payment records
+GET /api/admin/payments - List payments
 
-GET /api/admin/users → User records
+GET /api/admin/users - List users
 
 User
 
-GET /api/packages → Available packages
+GET /api/packages - List packages
 
-GET /api/user/status → Access status
+GET /api/user/status - Access status
 
-Database Schema / ERD
-erDiagram
-    USERS {
-        UUID id PK
-        VARCHAR username
-        VARCHAR phone
-        VARCHAR email
-        VARCHAR password_hash
-        DATETIME created_at
-    }
+🤝 Contributing
+Fork the repo
 
-    PACKAGES {
-        UUID id PK
-        VARCHAR name
-        INT duration_minutes
-        DECIMAL price
-        DATETIME created_at
-    }
+Create branch: git checkout -b feature-name
 
-    PAYMENTS {
-        UUID id PK
-        UUID user_id FK
-        UUID package_id FK
-        DECIMAL amount
-        ENUM status "Pending, Success, Failed"
-        VARCHAR mpesa_transaction_code
-        DATETIME created_at
-    }
+Make changes & test
 
-    SESSIONS {
-        UUID id PK
-        UUID user_id FK
-        VARCHAR mac_address
-        DATETIME start_time
-        DATETIME end_time
-        BOOLEAN active
-        DATETIME created_at
-    }
-
-    ADMIN_USERS {
-        UUID id PK
-        VARCHAR username
-        VARCHAR password_hash
-        VARCHAR role
-        DATETIME created_at
-    }
-
-    ROUTERS {
-        UUID id PK
-        VARCHAR hostname
-        VARCHAR ip_address
-        INT port
-        VARCHAR username
-        VARCHAR password
-        DATETIME created_at
-    }
-
-    LOGS {
-        UUID id PK
-        UUID user_id FK
-        UUID admin_id FK
-        VARCHAR action
-        TEXT description
-        DATETIME created_at
-    }
-
-    NOTIFICATIONS {
-        UUID id PK
-        UUID user_id FK
-        VARCHAR type
-        TEXT message
-        BOOLEAN read
-        DATETIME created_at
-    }
-
-    SETTINGS {
-        UUID id PK
-        VARCHAR key
-        TEXT value
-        DATETIME created_at
-    }
-
-    USERS ||--o{ PAYMENTS : "makes"
-    USERS ||--o{ SESSIONS : "has"
-    USERS ||--o{ NOTIFICATIONS : "receives"
-    PACKAGES ||--o{ PAYMENTS : "included in"
-    ADMIN_USERS ||--o{ LOGS : "performs"
-    USERS ||--o{ LOGS : "triggers"
-    ROUTERS ||--o{ SESSIONS : "manages"
-
-Troubleshooting
-
-Database Connection Error → Check MySQL & .env
-
-Payment Failures → Check M-Pesa credentials & callback URL
-
-Hotspot Login Not Working → Ensure Python server on port 8080
-
-Frontend Build Errors → Clear .next cache & reinstall dependencies
-
-Development
-
-Backend: npm run dev
-
-Frontend: cd frontend && npm run dev
-
-Linting: cd frontend && npm run lint
-
-Project Structure:
-
-wifi_billing/
-├── api/
-├── config/
-├── frontend/
-├── hotspot/
-├── middleware/
-├── models/
-├── prisma/
-├── routes/
-├── scripts/
-└── index.js
-
-Contributing
-
-Fork repository
-
-Create feature branch: git checkout -b feature-name
-
-Commit changes: git commit -am 'Add feature'
+Commit: git commit -am 'Add feature'
 
 Push: git push origin feature-name
 
 Open Pull Request
 
-Security
+⚖ License
+MIT License – see LICENSE for details.
 
-Change default admin credentials
-
-Use HTTPS in production
-
-Secure database access
-
-Validate user input
-
-Monitor API usage
-
-License
-
-This project is licensed under the MIT License - see LICENSE
-.
-
-Support
-
+💌 Support
 Email: mwakidenice@gmail.com
 
 WhatsApp: Chat
 
-Acknowledgments
 
-African Tech Community
 
-Open Source Libraries: Prisma, Tailwind CSS, Next.js, React
-
-Contributors and testers
-
-✅ Made with ❤️ in Africa for the World 🌍
+Made with ❤️ in Africa for the World 🌍
