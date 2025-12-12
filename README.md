@@ -189,7 +189,7 @@ MIT License – see LICENSE for details.
 💌 Support
 Email: mwakidenice@gmail.com
 
-WhatsApp: Chat
+WhatsApp: [Chat on WhatsApp](https://wa.me/254798750585) 
 
 
 
