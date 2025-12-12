@@ -61,10 +61,13 @@ Check it out online: [https://anotherone-production-dcdb.up.railway.app/](https:
 
 ## ⚡ Installation & Setup
 
-### 1. Clone Repository
+### 1. Fork & Clone Repository
+Fork the repo: [https://github.com/mwakidenis/Mpesa-Based_WiFi_Billing_System](https://github.com/mwakidenis/Mpesa-Based_WiFi_Billing_System)  
+
+Clone it locally:
 ```bash
-git clone https://github.com/Nigiddy/Mpesa_Based-WiFi-Billing-System.git
-cd Mpesa_Based-WiFi-Billing-System
+git clone https://github.com/mwakidenis/Mpesa-Based_WiFi_Billing_System.git
+cd Mpesa-Based_WiFi_Billing_System
 2. Install Dependencies
 bash
 Copy code
@@ -170,8 +173,59 @@ GET /api/packages - List packages
 
 GET /api/user/status - Access status
 
+⚙️ Configuration
+MikroTik Integration
+Enable API access on MikroTik router
+
+Add router credentials to .env
+
+System auto-adds/removes MAC addresses based on payments
+
+Package Configuration
+Edit frontend/lib/constants.ts to change packages
+
+🛠 Development
+Project Structure
+arduino
+Copy code
+wifi_billing/
+├── api/                    
+├── config/                 
+├── frontend/               
+│   ├── app/               
+│   ├── components/        
+│   └── lib/               
+├── hotspot/               
+├── middleware/            
+├── models/                
+├── prisma/                
+├── routes/                
+├── scripts/               
+└── index.js               
+Available Scripts
+npm run dev - Start backend in development mode
+
+npm start - Start backend in production mode
+
+cd frontend && npm run dev - Start frontend
+
+cd frontend && npm run build - Build frontend
+
+cd frontend && npm run lint - Run ESLint
+
+🔒 Security
+Change default admin credentials immediately
+
+Use HTTPS in production
+
+Regularly update dependencies
+
+Implement rate limiting
+
+Secure database access & validate inputs
+
 🤝 Contributing
-Fork the repo
+Fork: https://github.com/mwakidenis/Mpesa-Based_WiFi_Billing_System
 
 Create branch: git checkout -b feature-name
 
