@@ -1,7 +1,7 @@
 # M-Pesa Based WiFi Billing System
 
 [![Node.js](https://img.shields.io/badge/Node.js-16+-green)](https://nodejs.org/) 
-[![MySQL](https://img.shields.io/badge/MySQL-8+-blue)](https://www.mysql.com/)
+[![MySQL](https://img.shields.io/badge/MySQL-8+-blue)](https://www.mysql.com/) 
 [![Next.js](https://img.shields.io/badge/Next.js-13-black)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-18-blue)](https://reactjs.org/)
 [![MIT License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
