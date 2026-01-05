@@ -1,0 +1,36 @@
+name: Python (Linked to Account)
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-timestamp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update timestamp
+        run: |
+          set -eux
+
+          TIMESTAMP_FILE="updates.txt"
+          TIMESTAMP="v$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
+          echo "$TIMESTAMP" > "$TIMESTAMP_FILE"
+
+          mkdir -p public
+          cp "$TIMESTAMP_FILE" public/
+
+          git config user.name "mwaki's[bot]"
+          git config user.email "41898282+mwaki's[bot]@users.noreply.github.com"
+
+          git add "$TIMESTAMP_FILE" public/
+          git commit -m "Update Python script: $TIMESTAMP"
+
+      - name: Push changes
+        run: git push
