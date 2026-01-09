@@ -3,8 +3,11 @@ node_modules/
 npm-debug.log
 yarn-error.log
 
-# Environment variables
+# Ignore environment variable files
+.env.local
 .env
+.env.*.local
+
 
 # Logs
 logs/
