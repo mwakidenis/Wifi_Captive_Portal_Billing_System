@@ -1,4 +1,4 @@
-# M-Pesa Based WiFi Billing System
+# M-pesa based Wi-Fi Hotspot Billing System
 
 [![Node.js](https://img.shields.io/badge/Node.js-16+-green)](https://nodejs.org/)  
 [![MySQL](https://img.shields.io/badge/MySQL-8+-blue)](https://www.mysql.com/) 
@@ -62,8 +62,7 @@ A comprehensive WiFi billing system that allows users to purchase internet acces
 ## ⚡ Installation & Setup
 
 ### 1. Clone Repository
-```bash
-git clone https://github.com/Nigiddy/Mpesa_Based-WiFi-Billing-System.git
+clone https://github.com/mwakidenis/Mpesa-Based_Wi-Fi_Hotspot_Billing_System.git
 cd Mpesa_Based-WiFi-Billing-System
 ```
 ### 2. Install Dependencies
