@@ -73,7 +73,9 @@ export default function UserPortal() {
     }
   }
 
-     const getSelectedPackage = () => {
+     // ================= FIX 1 =================
+  // Single source of truth for selected package
+  const getSelectedPackage = () => {
     const pkg = packages.find((p) => p.value === amount)
     if (!pkg) {
       toast.error("Invalid package selected")
@@ -81,29 +83,25 @@ export default function UserPortal() {
     }
     return pkg
   }
+
   const handlePayment = async () => {
-    // Check if user is authenticated first
-    const token = localStorage.getItem('user_token')
+    // ================= FIX 2 =================
+    // Authentication guard
+    const token = localStorage.getItem("user_token")
     if (!token) {
-      // Redirect to login page
-      window.location.href = '/login'
+      window.location.href = "/login"
       return
     }
 
-    // Validation
     if (!/^(07|01)\d{8}$/.test(phone)) {
-      toast.error("Invalid phone number", {
-        description: "Please enter a valid 10-digit phone number starting with 07 or 01",
-      })
+      toast.error("Invalid phone number")
       return
     }
 
-    if (!amount) {
-      toast.error("No package selected", {
-        description: "Please select a package before proceeding",
-      })
-      return
-    }
+    // ================= FIX 3 =================
+    // Correctly resolve selected package
+    const selectedPackage = getSelectedPackage()
+    if (!selectedPackage) return
 
     setIsLoading(true)
     setStatus("pending")
@@ -114,7 +112,7 @@ export default function UserPortal() {
     })
 
     try {
-      const paymentPayload: PaymentRequest = {
+      const payload: PaymentRequest = {
         phone: `+254${phone.substring(1)}`,
         amount,
         package: selectedPackage.label,
@@ -122,187 +120,85 @@ export default function UserPortal() {
         speed: selectedPackage.speed,
       }
 
-      console.log("Payment payload:", paymentPayload)
+      const response = await apiClient.initiatePayment(payload)
 
-      const response = await apiClient.initiatePayment(paymentPayload)
-
-      if (response.success && response.data) {
-        const { transactionId: txnId, mpesaRef, status: paymentStatus, expiresAt } = response.data
-
-        setTransactionId(txnId)
-        setStatus(paymentStatus)
-
-        if (paymentStatus === "completed") {
-          const successPaymentData = {
-            transactionId: txnId,
-            amount,
-            package: selectedPackage.label,
-            phone: `+254${phone.substring(1)}`,
-            mpesaRef,
-            expiresAt,
-            speed: selectedPackage.speed,
-          }
-
-          setPaymentData(successPaymentData)
-
-          toast.dismiss("payment-loading")
-          toast.success("Payment successful!", {
-            description: "You are now connected to the internet",
-            duration: 4000,
-          })
-
-          setTimeout(() => {
-            setShowSuccessModal(true)
-          }, 1000)
-        } else if (paymentStatus === "pending") {
-          // Poll for payment status
-          pollPaymentStatus(txnId)
-        }
-      } else {
-        throw new Error(response.error || "Payment initiation failed")
+      if (!response.success || !response.data) {
+        throw new Error(response.error)
       }
-    } catch (error) {
+
+      const { transactionId, status: paymentStatus, mpesaRef, expiresAt } = response.data
+      setStatus(paymentStatus)
+
+      if (paymentStatus === "completed") {
+        setPaymentData({
+          transactionId,
+          amount,
+          package: selectedPackage.label,
+          phone: payload.phone,
+          mpesaRef,
+          expiresAt,
+          speed: selectedPackage.speed,
+        })
+
+        toast.dismiss("payment-loading")
+        toast.success("Payment successful")
+        setTimeout(() => setShowSuccessModal(true), 1000)
+      } else {
+        pollPaymentStatus(transactionId)
+      }
+    } catch (err) {
       setStatus("failed")
       toast.dismiss("payment-loading")
-      const errMsg = error instanceof Error ? error.message : String(error)
-      toast.error("Payment error", {
-        description: errMsg || "An unexpected error occurred. Please try again.",
-        duration: 4000,
-      })
+      toast.error("Payment failed")
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleLoan = async () => {
-    // Check if user is authenticated first
-    const token = localStorage.getItem('user_token')
-    if (!token) {
-      // Redirect to login page
-      window.location.href = '/login'
-      return
-    }
-
-    // Validation
-    if (!/^(07|01)\d{8}$/.test(phone)) {
-      toast.error("Invalid phone number", {
-        description: "Please enter a valid 10-digit phone number starting with 07 or 01",
-      })
-      return
-    }
-
-    if (!amount) {
-      toast.error("No package selected", {
-        description: "Please select a package before proceeding",
-      })
-      return
-    }
-
-    const selectedPackage = packages.find((p) => p.value === amount)
-    if (!selectedPackage) {
-      toast.error("Invalid package selected")
-      return
-    }
-
-    setIsLoanLoading(true)
-
-    toast.loading("Processing Okoa Internet application...", {
-      description: `${selectedPackage.price} for ${selectedPackage.label}`,
-      id: "loan-loading",
-    })
-
-  try {
-    // Simulate Okoa Internet processing (replace with actual API call when ready)
-    await new Promise(resolve => setTimeout(resolve, 3000))
-
-    toast.dismiss("loan-loading")
-    toast.success("Okoa Internet application submitted!", {
-      description: "You will receive a confirmation SMS shortly",
-      duration: 4000,
-    })
-    } catch (error) {
-      toast.dismiss("loan-loading")
-      const errMsg = error instanceof Error ? error.message : String(error)
-      toast.error("Okoa Internet application failed", {
-        description: errMsg || "An unexpected error occurred. Please try again.",
-        duration: 4000,
-      })
-    } finally {
-      setIsLoanLoading(false)
-    }
-  }
-
+  // ================= FIX 4 =================
+  // Safe polling with package guard
   const pollPaymentStatus = async (txnId: string) => {
-    const maxAttempts = 30 // 5 minutes with 10-second intervals
     let attempts = 0
+    const maxAttempts = 30
 
     const poll = async () => {
+      const selectedPackage = getSelectedPackage()
+      if (!selectedPackage) return
+
       try {
         const response = await apiClient.checkPaymentStatus(txnId)
-
-        if (response.success && response.data) {
-          const { status: paymentStatus, mpesaRef, expiresAt } = response.data
-
-          if (paymentStatus === "completed") {
-            const selectedPackage = packages.find((p) => p.value === amount)
-            const successPaymentData = {
-              transactionId: txnId,
-              amount,
-              package: selectedPackage.label,
-              phone: `+254${phone.substring(1)}`,
-              mpesaRef,
-              expiresAt,
-              speed: selectedPackage.speed,
-            }
-
-            setPaymentData(successPaymentData)
-            setStatus("completed")
-
-            toast.dismiss("payment-loading")
-            toast.success("Payment successful!", {
-              description: "You are now connected to the internet",
-              duration: 4000,
-            })
-
-            setTimeout(() => {
-              setShowSuccessModal(true)
-            }, 1000)
-            return
-          } else if (paymentStatus === "failed") {
-            setStatus("failed")
-            toast.dismiss("payment-loading")
-            toast.error("Payment failed", {
-              description: "Please check your M-Pesa balance and try again",
-              duration: 4000,
-            })
-            return
-          }
-        }
-
-        attempts++
-        if (attempts < maxAttempts) {
-          setTimeout(poll, 10000) // Poll every 10 seconds
-        } else {
-          setStatus("failed")
-          toast.dismiss("payment-loading")
-          toast.error("Payment timeout", {
-            description: "Payment is taking longer than expected. Please contact support.",
-            duration: 4000,
+        if (response.success && response.data?.status === "completed") {
+          setPaymentData({
+            transactionId: txnId,
+            amount,
+            package: selectedPackage.label,
+            phone: `+254${phone.substring(1)}`,
+            mpesaRef: response.data.mpesaRef,
+            expiresAt: response.data.expiresAt,
+            speed: selectedPackage.speed,
           })
+          setStatus("completed")
+          toast.dismiss("payment-loading")
+          toast.success("Payment successful")
+          setShowSuccessModal(true)
+          return
         }
-      } catch (error) {
-        const errMsg = error instanceof Error ? error.message : String(error)
-        console.error("Error polling payment status:", errMsg)
+
         attempts++
         if (attempts < maxAttempts) {
           setTimeout(poll, 10000)
+        } else {
+          throw new Error("Timeout")
         }
+      } catch {
+        setStatus("failed")
+        toast.dismiss("payment-loading")
+        toast.error("Payment timeout or failed")
       }
     }
 
     poll()
   }
-
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setPhone(value)
