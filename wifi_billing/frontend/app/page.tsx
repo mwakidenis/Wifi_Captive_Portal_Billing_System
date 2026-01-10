@@ -97,12 +97,14 @@ export default function UserPortal() {
       return
     }
 
-    const selectedPackage = packages.find((p) => p.value === amount)
-    if (!selectedPackage) {
+   const getSelectedPackage = () => {
+    const pkg = packages.find(p => p.value === amount)
+    if (!pkg) {
       toast.error("Invalid package selected")
-      setIsLoading(false)
-      return
+      return null
     }
+    return pkg
+  }
 
     setIsLoading(true)
     setStatus("pending")
