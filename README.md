@@ -22,7 +22,8 @@ A comprehensive WiFi billing system that allows users to purchase internet acces
 ## 🌟 Features
 
 - **M-Pesa Integration**: STK Push payments directly from user phones  
-- **Time-Based Access**: Flexible internet access packages  
+- **Time-Based Access**: Flexible internet access packages
+- ** Okoa Internet Option**: Temporary internet access with deferred payment
 - **Admin Dashboard**: Manage payments, users, and system settings   
 - **MAC Address Whitelisting**: Automatic router integration  
 - **Real-Time Monitoring**: Track sessions, payments, and system status  
