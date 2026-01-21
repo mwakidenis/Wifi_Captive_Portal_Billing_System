@@ -4,11 +4,12 @@ A comprehensive WiFi billing system with M-Pesa integration, loan management, an
  
 ## Screenshots
 
-![connections and payments](images/Screenshot 2026-01-09 213840.png)
+![connections and payments](screenshots/Screenshot%202026-01-09%20213840.png)
 *Dashboard view showing user connections and payments.*
 
-![Billing interface and loan options](images/Screenshot 2026-01-09 213922.png)
+![Billing interface and loan options](screenshots/Screenshot%202026-01-09%20213922.png)
 *Billing interface with M-Pesa integration and loan options.*
+
 
 ## Features
 
